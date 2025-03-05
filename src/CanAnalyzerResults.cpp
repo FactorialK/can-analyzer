@@ -51,16 +51,16 @@ void CanAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel
         if( frame.HasFlag( REMOTE_FRAME ) == false )
         {
             if( frame.mType == IdentifierField )
-                ss << "Standard CAN Identifier: " << number_str;
+                ss << "Standard_CAN Identifier: " << number_str;
             else
-                ss << "Extended CAN Identifier: " << number_str;
+                ss << "Extended_CAN Identifier: " << number_str;
         }
         else
         {
             if( frame.mType == IdentifierField )
-                ss << "Standard CAN Identifier: " << number_str << " (RTR)";
+                ss << "Standard_CAN Identifier: " << number_str << " (RTR)";
             else
-                ss << "Extended CAN Identifier: " << number_str << " (RTR)";
+                ss << "Extended_CAN Identifier: " << number_str << " (RTR)";
         }
 
         AddResultString( ss.str().c_str() );
@@ -127,7 +127,7 @@ void CanAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel
     break;
     case CanError:
     {
-        AddResultString( "E" );
+        AddResultString( "E" ); //用於 呈現在channel上的標記
         AddResultString( "Error" );
     }
     break;
@@ -304,16 +304,16 @@ void CanAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase 
         if( frame.HasFlag( REMOTE_FRAME ) == false )
         {
             if( frame.mType == IdentifierField )
-                ss << "Standard CAN Identifier: " << number_str;
+                ss << "Standard_CAN_Identifier: " << number_str;
             else
-                ss << "Extended CAN Identifier: " << number_str;
+                ss << "Extended_CAN_Identifier: " << number_str;
         }
         else
         {
             if( frame.mType == IdentifierField )
-                ss << "Standard CAN Identifier: " << number_str << " (RTR)";
+                ss << "Standard_CAN_Identifier: " << number_str << " (RTR)";
             else
-                ss << "Extended CAN Identifier: " << number_str << " (RTR)";
+                ss << "Extended_CAN_Identifier: " << number_str << " (RTR)";
         }
 
         AddTabularText( ss.str().c_str() );
@@ -326,7 +326,7 @@ void CanAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase 
 
         std::stringstream ss;
 
-        ss << "Control Field: " << number_str;
+        ss << "Control_Field: " << number_str;
         ss << " bytes";
         AddTabularText( ss.str().c_str() );
     }
@@ -338,7 +338,7 @@ void CanAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase 
 
         std::stringstream ss;
 
-        ss << "Data Field Byte: " << number_str;
+        ss << "Data_Field_Byte: " << number_str;
         AddTabularText( ss.str().c_str() );
     }
     break;
@@ -349,21 +349,21 @@ void CanAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase 
 
         std::stringstream ss;
 
-        ss << "CRC value: " << number_str;
+        ss << "CRC_value: " << number_str;
         AddTabularText( ss.str().c_str() );
     }
     break;
     case AckField:
     {
         if( bool( frame.mData1 ) == true )
-            AddTabularText( "ACK" );
+            AddTabularText( "ACK_" );
         else
-            AddTabularText( "NAK" );
+            AddTabularText( "NAK_" );
     }
     break;
     case CanError:
     {
-        AddTabularText( "Error" );
+        AddTabularText( "Error_" );
     }
     break;
     }

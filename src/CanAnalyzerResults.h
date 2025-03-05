@@ -11,7 +11,8 @@ enum CanFrameType
     DataField,
     CrcField,
     AckField,
-    CanError
+    CanError,
+    Lengthen ////
 };
 #define REMOTE_FRAME ( 1 << 0 )
 

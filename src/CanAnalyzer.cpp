@@ -37,8 +37,12 @@ void CanAnalyzer::WorkerThread()
             mCan->AdvanceToNextEdge();
 
         // we're at the first DOMINANT edge of the frame
-        GetRawFrame();
+        // GetRawFrame();
+        GetRawSamples();
         AnalizeRawFrame();
+
+        // FrameV2 BetweenEdge;
+        // mResults->AddFrameV2( BetweenEdge, "BwEdge ", mEdgeSamples.back(), mEdgeSamples.back() );
 
         if( mCanError == true )
         {
@@ -48,7 +52,7 @@ void CanAnalyzer::WorkerThread()
             frame.mEndingSampleInclusive = mErrorEndingSample;
             frame.mType = CanError;
             mResults->AddFrame( frame );
-            mResults->AddFrameV2( frame_v2_error, "can_error", frame.mStartingSampleInclusive, frame.mEndingSampleInclusive );
+            mResults->AddFrameV2( frame_v2_error, "can_error_", frame.mStartingSampleInclusive, frame.mEndingSampleInclusive );
             mResults->CancelPacketAndStartNewPacket();
         }
 
@@ -78,6 +82,7 @@ void CanAnalyzer::InitSampleOffsets()
 
     double samples_per_bit = double( mSampleRateHz ) / double( mSettings->mBitRate );
     double samples_behind = 0.0;
+    mSamplesPerBit = samples_per_bit; ///////////////
 
     U32 increment = U32( ( samples_per_bit * .5 ) + samples_behind );
     samples_behind = ( samples_per_bit * .5 ) + samples_behind - double( increment );
@@ -231,6 +236,7 @@ void CanAnalyzer::AnalizeRawFrame()
 
     Frame frame;
     FrameV2 frame_v2_identifier;
+    S64 StartingSample = mStartOfFrame + mSampleOffsets[ 1 ]; ////////////////////////////////////////////
 
 
     if( bit1 == mSettings->Dominant() )
@@ -447,6 +453,12 @@ void CanAnalyzer::AnalizeRawFrame()
         return;
 
     mAckField.push_back( ack );
+    ///////////////////////////////////////////////Adding Features
+    FrameV2 frame_v2_test;
+    S64 EndingSample = frame.mEndingSampleInclusive;
+    frame_v2_test.AddBoolean( "EOF", true );
+    mResults->AddFrameV2( frame_v2_test, "SelfMade_field", StartingSample, EndingSample );
+    ///////////////////////////////////////////////
 
     FrameV2 frame_v2_ack;
     frame.mStartingSampleInclusive = first_sample;
@@ -456,6 +468,7 @@ void CanAnalyzer::AnalizeRawFrame()
     mResults->AddFrame( frame );
     frame_v2_ack.AddBoolean( "ack", mAck );
     mResults->AddFrameV2( frame_v2_ack, "ack_field", frame.mStartingSampleInclusive, frame.mEndingSampleInclusive );
+
     mResults->CommitPacketAndStartNewPacket();
 }
 
@@ -565,4 +578,122 @@ Analyzer* CreateAnalyzer()
 void DestroyAnalyzer( Analyzer* analyzer )
 {
     delete analyzer;
+}
+
+/// @brief New API for testing///////////////////
+void CanAnalyzer::GetRawSamples()
+{
+    mCanError = false;
+    mRecessiveCount = 0;
+    mDominantCount = 0;
+    mRawBitResults.clear();
+    mEdgeSamples.clear();
+    // AnalyzerHelpers::Assert( "In My function" );
+
+    if( mCan->GetBitState() != mSettings->Dominant() )
+        AnalyzerHelpers::Assert( "GetFrameOrError assumes we start DOMINANT" );
+
+    mStartOfFrame = mCan->GetSampleNumber();
+
+    U64 mPrevEdge = 0;                           //
+    U64 mNextEdge = mCan->GetSampleOfNextEdge(); ///
+    mCan->AdvanceToAbsPosition( mStartOfFrame ); ///
+    mCan->AdvanceToAbsPosition( mStartOfFrame ); ///
+
+    U32 i = 0;
+    // what we're going to do now is capture a sequence up until we get 7 recessive bits in a row.
+    for( ;; )
+    {
+        if( i > 255 )
+        {
+            // we are in garbage data most likely, lets get out of here.
+            return;
+        }
+
+        ////////////////////// EdgeSample 和 SOF + Offset 比較大小 前進到小的sample; 如果是Edge 存 EdgeSample ; 如果是Offset 就要取RawBit
+        if( mStartOfFrame + mSampleOffsets[ i ] <= mNextEdge )
+        {
+            mCan->AdvanceToAbsPosition( mStartOfFrame + mSampleOffsets[ i ] );
+            i++;
+
+            if( mCan->GetBitState() == mSettings->Dominant() )
+            {
+                // the bit is DOMINANT
+                mDominantCount++;
+                mRecessiveCount = 0;
+                mRawBitResults.push_back( mSettings->Dominant() );
+
+                if( mDominantCount == 6 )
+                {
+                    // we have detected an error.
+
+                    mCanError = true;
+                    mErrorStartingSample = mStartOfFrame + mSampleOffsets[ i - 6 ];
+                    mErrorEndingSample = mStartOfFrame + mSampleOffsets[ i ];
+
+                    // don't use any of these error bits in analysis.
+                    mRawBitResults.pop_back();
+                    mRawBitResults.pop_back();
+                    mRawBitResults.pop_back();
+                    mRawBitResults.pop_back();
+                    mRawBitResults.pop_back();
+                    mRawBitResults.pop_back();
+
+                    mNumRawBits = mRawBitResults.size();
+
+                    // the channel is currently high.  addvance it to the next start bit.
+                    // no, don't bother, we want to analyze this packet before we advance.
+
+                    // mPrevEdge = mNextEdge;
+                    // mCan->AdvanceToAbsPosition( mPrevEdge ); // have to advance the analyzer
+                    // mNextEdge = mCan->GetSampleOfNextEdge();
+                    if( mNextEdge - mPrevEdge > mSamplesPerBit * 12 && mPrevEdge != 0 )
+                    {
+                        FrameV2 LengthenEdge;
+                        Frame BitErrorFrame;
+                        BitErrorFrame.mStartingSampleInclusive= mPrevEdge;
+                        BitErrorFrame.mEndingSampleInclusive = mNextEdge;
+                        BitErrorFrame.mType = (CanError + 1);
+                        mResults->AddFrame(BitErrorFrame);
+                        mResults->AddFrameV2( LengthenEdge, "Lengthen_Edge ", mPrevEdge,
+                                              mNextEdge ); // Currently, the +1 affect 1 sample time
+                    }
+
+                    break;
+                }
+            }
+            else
+            {
+                // the bit is RECESSIVE
+                mRecessiveCount++;
+                mDominantCount = 0;
+                mRawBitResults.push_back( mSettings->Recessive() );
+
+                if( mRecessiveCount == 7 )
+                {
+                    // we're done.
+                    break;
+                }
+            }
+        }
+        else
+        {
+            mPrevEdge = mNextEdge;
+            // mCan->AdvanceToAbsPosition( mStartOfFrame + mSampleOffsets[ i ] ); // if advance to next bit, Analyzer would miss a specific
+            // charateristic.
+            mCan->AdvanceToAbsPosition( mPrevEdge ); // have to advance the analyzer
+            mNextEdge = mCan->GetSampleOfNextEdge();
+            // mCan->AdvanceToNextEdge();  // if advance to next edge, Analyzer would miss one invert bit.
+
+            if( mNextEdge - mPrevEdge < mSamplesPerBit * 0.5 )
+            {
+                FrameV2 OscillatingEdge;
+                mResults->AddFrameV2( OscillatingEdge, "Oscillating_Edge ", mPrevEdge,
+                                      mNextEdge ); // Currently, the +1 affect 1 sample time
+            }
+            continue;
+        }
+    }
+    mNumRawBits = mRawBitResults.size();
+    mNumEdge = mEdgeSamples.size();
 }

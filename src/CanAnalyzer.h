@@ -54,6 +54,8 @@ class CanAnalyzer : public Analyzer2
     CanSimulationDataGenerator mSimulationDataGenerator;
     bool mSimulationInitilized;
 
+    double mSamplesPerBit; ///////
+
 
   protected: // analysis functions
     void WaitFor7RecessiveBits();
@@ -62,6 +64,7 @@ class CanAnalyzer : public Analyzer2
     void AnalizeRawFrame();
     bool UnstuffRawFrameBit( BitState& result, U64& sample, bool reset = false );
     bool GetFixedFormFrameBit( BitState& result, U64& sample );
+    void GetRawSamples();
 
   protected: // analysis vars:
     // ChunkedArray<ResultBubble>* mFrameBubbles;
@@ -78,9 +81,9 @@ class CanAnalyzer : public Analyzer2
     std::vector<U32> mSampleOffsets;
     std::vector<BitState> mRawBitResults;
     std::vector<BitState> mBitResults;
-
+    
     std::vector<CanMarker> mCanMarkers;
-
+    
     std::vector<BitState> mArbitrationField;
     bool mStandardCan;
     bool mRemoteFrame;
@@ -91,11 +94,15 @@ class CanAnalyzer : public Analyzer2
     BitState mCrcDelimiter;
     std::vector<BitState> mAckField;
     std::vector<BitState> mEndOfFrame;
-
+    
     U32 mNumRawBits;
     bool mCanError;
     U64 mErrorStartingSample;
     U64 mErrorEndingSample;
+    
+    U32 mNumEdge;
+    std::vector<BitState> mEdgeRawSamplesResults; ////////////
+    std::vector<U32> mEdgeSamples;
 
 #pragma warning( pop )
 };
