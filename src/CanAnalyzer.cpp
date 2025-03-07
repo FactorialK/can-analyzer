@@ -456,7 +456,7 @@ void CanAnalyzer::AnalizeRawFrame()
     ///////////////////////////////////////////////Adding Features
     FrameV2 frame_v2_test;
     S64 EndingSample = frame.mEndingSampleInclusive;
-    frame_v2_test.AddBoolean( "EOF", true );
+    // frame_v2_test.AddBoolean( "EOF", true );
     mResults->AddFrameV2( frame_v2_test, "SelfMade_field", StartingSample, EndingSample );
     ///////////////////////////////////////////////
 
@@ -655,7 +655,7 @@ void CanAnalyzer::GetRawSamples()
                         BitErrorFrame.mEndingSampleInclusive = mNextEdge;
                         BitErrorFrame.mType = (CanError + 1);
                         mResults->AddFrame(BitErrorFrame);
-                        mResults->AddFrameV2( LengthenEdge, "Lengthen_Edge ", mPrevEdge,
+                        mResults->AddFrameV2( LengthenEdge, "Lengthen_Edge", mPrevEdge,
                                               mNextEdge ); // Currently, the +1 affect 1 sample time
                     }
 
@@ -688,7 +688,7 @@ void CanAnalyzer::GetRawSamples()
             if( mNextEdge - mPrevEdge < mSamplesPerBit * 0.5 )
             {
                 FrameV2 OscillatingEdge;
-                mResults->AddFrameV2( OscillatingEdge, "Oscillating_Edge ", mPrevEdge,
+                mResults->AddFrameV2( OscillatingEdge, "Oscillating_Edge", mPrevEdge,
                                       mNextEdge ); // Currently, the +1 affect 1 sample time
             }
             continue;
