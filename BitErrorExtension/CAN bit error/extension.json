@@ -1,0 +1,13 @@
+{
+  "name": "CAN bit error",
+  "apiVersion": "1.0.0",
+  "author": "KJ",
+  "version": "0.0.1",
+  "description": "Testing",
+  "extensions": {
+    "CAN bit error": {
+      "type": "HighLevelAnalyzer",
+      "entryPoint": "HighLevelAnalyzer.CANBitErrorDetecting"
+    }
+  }
+}
