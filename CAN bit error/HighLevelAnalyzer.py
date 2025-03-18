@@ -8,7 +8,7 @@ from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, Nu
 class CANBitErrorDetecting(HighLevelAnalyzer):
 
     result_types = {
-        'can_frame': {
+        'attacked_frame': {
             'format': '{{data.datastring}}'
         }
     }
@@ -27,20 +27,20 @@ class CANBitErrorDetecting(HighLevelAnalyzer):
             self.currentData =b''
         # elif frame.type == 'data_field':
             # self.currentData = self.currentData + frame.data['data']
-        elif frame.type == 'Oscillating_Edge':
-            self.currentType = 'Flip'
         elif frame.type == 'Lengthen_Edge':
             self.currentType = 'Lengthen'
+        elif frame.type == 'Oscillating_Edge':
+            self.currentType = 'Flip'
         elif frame.type == 'can_error_':
             # Return the data frame
             datastring = ('{:03X}'.format(self.currentId) + '#'
-                        + '.'.join('{:02X}'.format(a) for a in self.currentData) + ' Error Type: ' + self.currentType)
+                        + ' Error Type: ' + self.currentType)
 
             print(datastring) # If streaming to the terminal, this will be printed
 
-            return AnalyzerFrame('can_frame', self.currentStart, frame.end_time, {
-                'id': self.currentId,
-                'data': self.currentData,
+            return AnalyzerFrame('attacked_frame', self.currentStart, frame.end_time, {
+                # 'id': self.currentId,
+                # 'data': self.currentData,
                 'datastring': datastring,
-                'errortype': self.currentType
+                # 'errortype': self.currentType
             })
