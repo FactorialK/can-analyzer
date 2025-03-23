@@ -1,0 +1,13 @@
+{
+  "name": "BitErrorResults",
+  "apiVersion": "1.0.0",
+  "author": "KJ",
+  "version": "0.0.1",
+  "description": "",
+  "extensions": {
+    "BitErrorResults": {
+      "type": "HighLevelAnalyzer",
+      "entryPoint": "HighLevelAnalyzer.Hla"
+    }
+  }
+}
