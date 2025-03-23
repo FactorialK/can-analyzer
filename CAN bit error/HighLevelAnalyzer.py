@@ -15,6 +15,7 @@ class CANBitErrorDetecting(HighLevelAnalyzer):
 
     def __init__(self):
         self.currentStart = 0
+        self.currentEnd = 0
         self.currentId = 0
         self.currentData = b''
         self.currentType = ' None'
@@ -24,14 +25,17 @@ class CANBitErrorDetecting(HighLevelAnalyzer):
         if frame.type == 'identifier_field':
             self.currentStart = frame.start_time
             self.currentId = frame.data['identifier']
-            self.currentData =b''
         # elif frame.type == 'data_field':
             # self.currentData = self.currentData + frame.data['data']
         elif frame.type == 'Lengthen_Edge':
+            self.currentStart = frame.start_time
             self.currentType = 'Lengthen'
+            # self.currentEnd = frame.end_time
         elif frame.type == 'Oscillating_Edge':
+            self.currentStart = frame.start_time
             self.currentType = 'Flip'
-        elif frame.type == 'can_error_':
+            # self.currentEnd = frame.end_time
+        elif frame.type == 'can_error_'and self.currentType != ' None':
             # Return the data frame
             datastring = ('{:03X}'.format(self.currentId) + '#'
                         + ' Error Type: ' + self.currentType)
