@@ -25,8 +25,10 @@ class CANBitErrorDetecting(HighLevelAnalyzer):
         if frame.type == 'identifier_field':
             self.currentStart = frame.start_time
             self.currentId = frame.data['identifier']
-        # elif frame.type == 'data_field':
-            # self.currentData = self.currentData + frame.data['data']
+            if (self.currentId == 0xBE or self.currentID == 0xBF):
+                return AnalyzerFrame('attacked_frame', self.currentStart, frame.end_time, {
+                'datastring': 'Error Attack Start'
+            })
         elif frame.type == 'Lengthen_Edge':
             self.currentStart = frame.start_time
             self.currentType = 'Lengthen'
