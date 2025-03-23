@@ -25,7 +25,7 @@ class CANBitErrorDetecting(HighLevelAnalyzer):
         if frame.type == 'identifier_field':
             self.currentStart = frame.start_time
             self.currentId = frame.data['identifier']
-            if (self.currentId == 0xBE or self.currentID == 0xBF):
+            if (self.currentId == 0xBE or self.currentId == 0xBF):
                 return AnalyzerFrame('attacked_frame', self.currentStart, frame.end_time, {
                 'datastring': 'Error Attack Start'
             })
