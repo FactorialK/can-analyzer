@@ -37,6 +37,9 @@ class CANBitErrorDetecting(HighLevelAnalyzer):
             self.currentStart = frame.start_time
             self.currentType = 'Flip'
             # self.currentEnd = frame.end_time
+        elif frame.type == 'ack_field':
+            self.currentType = ' None'
+            return
         elif frame.type == 'can_error_'and self.currentType != ' None':
             # Return the data frame
             datastring = ('{:03X}'.format(self.currentId) + '#'
